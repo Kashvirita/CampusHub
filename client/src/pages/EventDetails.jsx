@@ -81,7 +81,7 @@ const EventDetails = () => {
               Register
             </button>
             <button
-              onClick={() => navigate('/events')}
+              onClick={() => navigate('/')}
               className="text-blue-600 hover:underline"
             >
               Back to Events
