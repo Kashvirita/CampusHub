@@ -29,12 +29,21 @@ const CreateEvents = () => {
       setImageFile(file);
     }
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEventData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
-  
+
     if (
       !eventData.title ||
       !eventData.shortDescription ||
@@ -49,19 +58,19 @@ const CreateEvents = () => {
       setLoading(false);
       return;
     }
-  
+
     const token = localStorage.getItem('authToken'); // Ensure token is correct
     if (!token) {
       console.error("No token found.");
       return;
     }
-  
+
     try {
       // Upload image first if selected
       if (imageFile) {
         const formData = new FormData();
         formData.append('image', imageFile);
-  
+
         const uploadRes = await fetch('http://localhost:5000/api/upload', {
           method: 'POST',
           headers: {
@@ -69,25 +78,25 @@ const CreateEvents = () => {
           },
           body: formData,
         });
-  
+
         const uploadData = await uploadRes.json();
         console.log('Image upload response:', uploadData);
-  
+
         if (!uploadRes.ok) {
           throw new Error(uploadData.message || 'Image upload failed');
         }
-  
+
         // Set the image URL after successful upload
         setEventData(prev => ({ ...prev, imageUrl: uploadData.imageUrl }));
       }
-  
+
       // Check if imageUrl is set
       if (!eventData.imageUrl) {
         setError('Image URL is missing.');
         setLoading(false);
         return;
       }
-  
+
       // Create event with the imageUrl included
       const res = await fetch(`http://localhost:5000/api/admin/events/${committeeID}`, {
         method: 'POST',
@@ -100,10 +109,10 @@ const CreateEvents = () => {
           createdBy: committeeID,
         }),
       });
-  
+
       const responseText = await res.text();
       console.log('Backend Response:', responseText);
-  
+
       if (res.ok) {
         setMessage('Event created successfully!');
         navigate(`/admin/dashboard/${committeeID}`);
@@ -118,7 +127,6 @@ const CreateEvents = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
