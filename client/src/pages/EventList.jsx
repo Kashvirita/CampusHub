@@ -1,40 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import SearchBar from '../components/Searchbar';
-function EventList({ events }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredEvents, setFilteredEvents] = useState(events);
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import axios from 'axios';
+
+function AllEventsPage() {
+  const [events, setEvents] = useState([]);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const searchQuery = queryParams.get('search');
 
   useEffect(() => {
-    const filtered = events.filter((event) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        event.title.toLowerCase().includes(searchLower) ||
-        event.shortDescription.toLowerCase().includes(searchLower) ||
-        event.eventDescription.toLowerCase().includes(searchLower) ||
-        event.committee?.toLowerCase().includes(searchLower)
-      );
-    });
-    setFilteredEvents(filtered);
-  }, [searchTerm, events]);
+    const fetchEvents = async () => {
+        try {
+          // Make sure to pass the search query in the request
+          const res = await axios.get('/api/events/upcoming/all', {
+            params: { search: searchQuery }, // Pass the search query in the URL
+          });
+      
+          console.log("Response from backend:", res.data); // Log the events array for debugging
+      
+          let allEvents = res.data; // Now, res.data is directly the events array
+      
+          // Apply additional search filtering on the frontend if necessary
+          if (searchQuery) {
+            allEvents = allEvents.filter(event =>
+              event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              event.committeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              event.eventDescription.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          }
+      
+          setEvents(allEvents); // Update the state with the fetched events
+        } catch (err) {
+          console.error('Failed to fetch events:', err);
+        }
+      };
+    fetchEvents();
+  }, [searchQuery]);
 
   return (
-    <div className="p-4">
-      <SearchBar onSearch={setSearchTerm} />
-      <div className="grid gap-4 mt-4">
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map((event) => (
-            <div key={event._id} className="p-4 border rounded shadow">
-              <h2 className="text-xl font-semibold">{event.title}</h2>
-              <p>{event.shortDescription}</p>
-              <p className="text-sm text-gray-600">{event.committee}</p>
-            </div>
-          ))
-        ) : (
-          <p>No events match your search.</p>
-        )}
-      </div>
+    <div>
+      <h1>Upcoming Events</h1>
+      <ul>
+        {events.map(event => (
+          <li key={event._id}>{event.title}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-export default EventList;
+export default AllEventsPage;

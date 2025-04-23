@@ -63,11 +63,31 @@ exports.getCommitteeEvents = async (req, res) => {
 // Get all upcoming events
 exports.getAllUpcomingEvents = async (req, res) => {
   try {
-    const now = new Date();
-    const events = await Event.find({ date: { $gte: now } }).sort({ date: 1 });
-    res.status(200).json(events);
-  } catch (err) {
-    res.status(500).json({ msg: 'Error fetching upcoming events', error: err.message });
+    const { search } = req.query;
+
+    const query = {
+      status: 'upcoming',
+    };
+
+    // If there is a search query, add the conditions for filtering by title, committeeName, etc.
+    if (search) {
+      const searchRegex = new RegExp(search, 'i'); // case-insensitive
+      query.$or = [
+        { title: searchRegex },
+        { committeeName: searchRegex },
+        { shortDescription: searchRegex },
+        { eventDescription: searchRegex },
+      ];
+    }
+
+    // Fetch events from the database based on the query
+    const events = await Event.find(query).sort({ date: 1 }); // Sort by date
+
+    // Send the events array as a response
+    res.status(200).json(events); // Just send the events array directly
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

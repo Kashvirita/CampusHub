@@ -1,21 +1,44 @@
-import React from 'react';
-// You can use a Lucide icon from the allowed list, like "search":
-import { Search } from "lucide-react";
- 
-function Searchbar({ onSearch }) {
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search } from 'lucide-react';
+
+function Searchbar() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchTerm.trim() !== '') {
+      console.log('Searching for:', searchTerm);  // Debugging line
+      navigate(`/events/upcoming?search=${encodeURIComponent(searchTerm)}`);
+    } else {
+      console.log('Search term is empty');
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="relative w-full">
       <input
         type="text"
         placeholder="Search events..."
-        onChange={(e) => onSearch(e.target.value)}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={handleKeyDown}
         className="w-full py-3 pl-11 pr-4 bg-white/50 rounded-xl border border-blue-200 shadow-inner text-blue-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-150"
       />
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 pointer-events-none">
+      <button
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500"
+        onClick={handleSearch}
+      >
         <Search size={20} />
-      </span>
+      </button>
     </div>
   );
 }
- 
+
 export default Searchbar;
