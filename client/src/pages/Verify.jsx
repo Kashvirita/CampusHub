@@ -30,22 +30,48 @@ const VerifyOtp = () => {
     return () => clearInterval(countdown);
   }, [timer]);
 
+  // const handleVerify = async (e) => {
+  //   e.preventDefault();
+
+  //   try {
+  //     const res = await axios.post('http://localhost:5000/api/auth/verify-otp', {
+  //       ...formData,
+  //       otp
+  //     });
+
+  //     console.log('Verifying OTP for:', facultyEmail);
+  //     console.log('Received OTP:', otp);
+  //     console.log('Found OTP record:', existingOtp);
+
+  //     localStorage.setItem('authToken', res.data.token);
+  //     localStorage.setItem('committeeId', res.data.committeeId);
+  //     console.log(res.data.committeeId);
+  //     alert('OTP verified successfully!');
+  //     navigate('/admin/dashboard/' + res.data.committeeId);
+
+  //   } catch (err) {
+  //     alert(err.response?.data?.msg || 'OTP verification failed');
+  //   }
+  // };
   const handleVerify = async () => {
     try {
       const payload = { ...formData, otp };
 
       const res = await axios.post('http://localhost:5000/api/auth/verify-otp', payload);
-
+      
+      localStorage.setItem('authToken', res.data.token);
+      localStorage.setItem('committeeId', res.data.committeeId);
+      
+      console.log(res.data.committeeId);
       if (res.status === 201) {
         alert('OTP Verified! Registration successful.');
-        navigate('/admin/dashboard'); // or login page
+        navigate('/admin/dashboard/' + res.data.committeeId); // or login page
       }
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.msg || 'OTP verification failed');
     }
   };
-
   const handleResendOtp = async () => {
     try {
       await axios.post('http://localhost:5000/api/auth/resend-otp', { facultyEmail: formData.facultyEmail });
