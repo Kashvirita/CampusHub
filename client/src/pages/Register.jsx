@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import { Link, useNavigate } from 'react-router-dom';
 const API = import.meta.env.VITE_API_BASE_URL;
 
 function Register() {
@@ -103,7 +104,7 @@ function Register() {
         </div>
 
         <p className="mt-4 text-center text-sm text-gray-600">
-          Already registered? <a href="/admin/login" className="text-blue-600 hover:underline">Log in</a>
+          Already registered? <Link  to= "/admin/login" className="text-blue-600 hover:underline">Log in</Link>
         </p>
       </div>
     </div>
