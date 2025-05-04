@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const CreateEvents = () => {
   const { committeeID } = useParams();
@@ -71,7 +72,7 @@ const CreateEvents = () => {
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        const uploadRes = await fetch('http://localhost:5000/api/upload', {
+        const uploadRes = await fetch(`${API}/api/upload`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,7 +99,7 @@ const CreateEvents = () => {
       }
 
       // Create event with the imageUrl included
-      const res = await fetch(`http://localhost:5000/api/admin/events/${committeeID}`, {
+      const res = await fetch(`${API}/api/admin/events/${committeeID}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
