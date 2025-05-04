@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard';
 import AdminEventCard from '../components/AdminEventCard';
 import committeeImg from '../assets/committee.webp';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const AdminDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -16,7 +17,7 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('authToken'); // get the JWT token
   
-      const res = await fetch(`http://localhost:5000/api/admin/events/${committeeId}`, {
+      const res = await fetch(`${API}/api/admin/events/${committeeId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
