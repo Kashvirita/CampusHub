@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard';
 import Footer from '../components/Footer';
 import intro_image from '../assets/images/intro_image.jpg';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -16,7 +17,7 @@ function Home() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/events/upcoming/all`, {
+        const res = await fetch(`${API}/api/events/upcoming/all`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
