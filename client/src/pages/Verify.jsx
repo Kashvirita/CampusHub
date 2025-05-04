@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState('');
@@ -74,7 +75,7 @@ const VerifyOtp = () => {
   };
   const handleResendOtp = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/resend-otp', { facultyEmail: formData.facultyEmail });
+      await axios.post(`${API}/api/auth/resend-otp`, { facultyEmail: formData.facultyEmail });
       alert('New OTP sent successfully!');
       setTimer(90);
       setResendEnabled(false);
