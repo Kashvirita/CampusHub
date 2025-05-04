@@ -19,7 +19,7 @@ function EventList() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('${API}/api/events');
+      const response = await fetch(`${API}/api/events`);
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
