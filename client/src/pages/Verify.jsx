@@ -58,7 +58,7 @@ const VerifyOtp = () => {
     try {
       const payload = { ...formData, otp };
 
-      const res = await axios.post('http://localhost:5000/api/auth/verify-otp', payload);
+      const res = await axios.post(`${API}/api/auth/verify-otp`, payload);
       
       localStorage.setItem('authToken', res.data.token);
       localStorage.setItem('committeeId', res.data.committeeId);
