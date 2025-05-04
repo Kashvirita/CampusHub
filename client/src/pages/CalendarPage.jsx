@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -13,7 +14,7 @@ function CalendarPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/events/upcoming/all');
+        const response = await axios.get(`${API}/api/events/upcoming/all`);
         setEvents(response.data);
         setError(null);
       } catch (err) {
