@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
   const [committeeName, setCommitteeName] = useState('');
@@ -12,7 +13,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axios.post(`${API}/api/auth/login`, {
         committeeName,
         facultyEmail,
         password
