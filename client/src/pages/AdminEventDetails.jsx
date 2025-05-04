@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const AdminEventDetails = () => {
   const storedCommitteeId = localStorage.getItem('committeeId');
@@ -16,7 +17,7 @@ const AdminEventDetails = () => {
     console.log("Fetching event with ID:", id);
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/admin/events/event/${id}`);
+        const res = await fetch(`${API}/api/admin/events/event/${id}`);
         if (!res.ok) throw new Error('Failed to fetch event');
         const data = await res.json();
         console.log("Event data fetched:", data);
