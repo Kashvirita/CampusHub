@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
-import { Link, useNavigate } from 'react-router-dom';
 const API = import.meta.env.VITE_API_BASE_URL;
 
 function Register() {
