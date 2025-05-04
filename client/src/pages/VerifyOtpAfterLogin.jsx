@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const VerifyOtpAfterLogin = () => {
   const [otp, setOtp] = useState('');
@@ -11,7 +12,7 @@ const VerifyOtpAfterLogin = () => {
     e.preventDefault();
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login/verify-otp', {
+      const res = await axios.post(`${API}/api/auth/login/verify-otp`, {
         credentials: 'include',
         facultyEmail,
         otp
