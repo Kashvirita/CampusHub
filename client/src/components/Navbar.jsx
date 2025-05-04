@@ -5,6 +5,7 @@ import Searchbar from './Searchbar';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 function Navbar() {
   const token = localStorage.getItem('authToken');
@@ -18,7 +19,7 @@ function Navbar() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/events/upcoming/all');
+        const response = await axios.get('{API}/api/events/upcoming/all');
         console.log('Raw events data:', response.data);
         
         // Process the events to ensure dates are in the correct format
