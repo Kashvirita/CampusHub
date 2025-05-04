@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
-
+const path = require('path');
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
 const imageuploadRoutes = require('./routes/Image');
