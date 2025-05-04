@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 const EventDetails = () => {
   const { id } = useParams(); // Get 'id' from the URL
@@ -14,7 +15,7 @@ const EventDetails = () => {
     const fetchEvent = async () => {
       try {
         // Update the API URL to match your backend's expected route
-        const res = await fetch(`http://localhost:5000/api/events/event/${id}`);
+        const res = await fetch(`${API}/api/events/event/${id}`);
         if (!res.ok) throw new Error('Failed to fetch event');
         const data = await res.json();
         setEvent(data);
