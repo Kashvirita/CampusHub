@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Searchbar from './Searchbar';
 import EventCalendar from './EventCalendar';
+const API = import.meta.env.VITE_API_BASE_URL;
 
 function EventList() {
   const [events, setEvents] = useState([]);
@@ -18,7 +19,7 @@ function EventList() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/events');
+      const response = await fetch('${API}/api/events');
       if (!response.ok) {
         throw new Error('Failed to fetch events');
       }
