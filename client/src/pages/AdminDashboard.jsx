@@ -100,7 +100,7 @@ const AdminDashboard = () => {
     localStorage.removeItem('committeeId');
     
     // Call logout endpoint to clear the HTTP-only cookie
-    fetch('http://localhost:5000/api/auth/logout', {
+    fetch(`${API}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include',
     }).then(() => {
