@@ -49,8 +49,8 @@ const AdminEventDetails = () => {
     console.log("Updating event with ID:", id);
     console.log("Form data to update:", formData);
     try {
-      console.log("Making request to:", `http://localhost:5000/api/admin/events/event/${id}`);
-      const res = await fetch(`http://localhost:5000/api/admin/events/event/${id}`, {
+      console.log("Making request to:", `${API}/api/admin/events/event/${id}`);
+      const res = await fetch(`${API}/api/admin/events/event/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ const AdminEventDetails = () => {
 
     console.log("Deleting event with ID:", id);
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/events/event/${id}`, {
+      const res = await fetch(`${API}/api/admin/events/event/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
