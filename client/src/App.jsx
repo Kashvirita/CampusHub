@@ -11,6 +11,8 @@ import CreateEventPage from './pages/CreateEvents';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './pages/EventList';
+import AdminEventDetails from './pages/AdminEventDetails';
+import CalendarPage from './pages/CalendarPage';
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/events" element={<EventList />} />
       <Route path="/events/upcoming" element={<EventList />} />
+      <Route path="/events/calendar" element={<CalendarPage />} />
       <Route path="/event/:id" element={<EventDetails />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/register" element={<Register />} />
@@ -30,6 +33,7 @@ function App() {
         <AdminDashboard />
       </ProtectedRoute>}/>
       <Route path="/admin/create-event/:committeeID" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
+      <Route path="/admin/event/:id" element={<ProtectedRoute><AdminEventDetails /></ProtectedRoute>} />
     </Routes>
   );
 }

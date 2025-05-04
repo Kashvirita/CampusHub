@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {jwtDecode} from 'jwt-decode'; // Use this library to decode the JWT token
 import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard';
+import AdminEventCard from '../components/AdminEventCard';
 import committeeImg from '../assets/committee.webp';
 
 const AdminDashboard = () => {
@@ -131,8 +132,9 @@ const AdminDashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {upcomingEvents.length > 0 ? (
               upcomingEvents.map(event => (
-                <EventCard
+                <AdminEventCard
                   key={event._id}
+                  id= {event._id}
                   title={event.title}
                   description={event.shortDescription}
                   date={event.date}
@@ -153,8 +155,9 @@ const AdminDashboard = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {pastEvents.length > 0 ? (
               pastEvents.map(event => (
-                <EventCard
+                <AdminEventCard
                   key={event._id}
+                  id={event._id}
                   title={event.title}
                   description={event.shortDescription}
                   date={event.date}

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const eventController = require('../controllers/eventController');
+const eventController = require('../controllers/eventcontroller');
 
+// Public routes
 router.get('/upcoming/all', eventController.getAllUpcomingEvents);
-
 router.get('/event/:eventId', eventController.getEventById);
 
-// 🔒 All routes protected
+// Protected routes
 router.use(authMiddleware);
 
 // Create event for a specific committee
@@ -21,6 +21,5 @@ router.put('/event/:eventId', eventController.updateEvent);
 
 // Delete a specific event by ID
 router.delete('/event/:eventId', eventController.deleteEvent);
-
 
 module.exports = router;

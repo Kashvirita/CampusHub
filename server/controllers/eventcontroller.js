@@ -94,14 +94,55 @@ exports.getAllUpcomingEvents = async (req, res) => {
 // Update a specific event
 exports.updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.eventId, req.body, { new: true });
-    if (!event) return res.status(404).json({ msg: 'Event not found' });
-    res.json({ msg: 'Event updated', event });
+    // Validate event ID
+    if (!req.params.eventId) {
+      return res.status(400).json({ msg: 'Event ID is required' });
+    }
+
+    // Validate committee ID
+    if (!req.committeeId) {
+      return res.status(401).json({ msg: 'Unauthorized: Committee ID not found' });
+    }
+
+    const event = await Event.findById(req.params.eventId);
+
+    if (!event) {
+      return res.status(404).json({ msg: 'Event not found' });
+    }
+
+    // Check if the logged-in committee is the creator
+    if (event.createdBy.toString() !== req.committeeId) {
+      return res.status(403).json({ msg: 'Access denied: not your event' });
+    }
+
+    // Validate required fields in the update
+    const { title, shortDescription, eventDescription, date, startTime, endTime, location, host } = req.body;
+    if (!title || !shortDescription || !eventDescription || !date || !startTime || !endTime || !location || !host) {
+      return res.status(400).json({ msg: 'Missing required fields' });
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+      req.params.eventId,
+      req.body,
+      { 
+        new: true,
+        runValidators: true // This ensures mongoose validators run on update
+      }
+    );
+
+    if (!updatedEvent) {
+      return res.status(500).json({ msg: 'Failed to update event' });
+    }
+
+    res.json({ msg: 'Event updated successfully', event: updatedEvent });
   } catch (err) {
+    console.error('Error updating event:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ msg: 'Validation error', error: err.message });
+    }
     res.status(500).json({ msg: 'Error updating event', error: err.message });
   }
 };
-
 // Delete a specific event
 exports.deleteEvent = async (req, res) => {
   try {
