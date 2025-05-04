@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import EventCard from '../components/EventCard';
-
+const API = import.meta.env.VITE_API_BASE_URL;
 function EventList() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ function EventList() {
       setLoading(true);
       try {
         // Make sure to pass the search query in the request
-        const res = await axios.get('http://localhost:5000/api/events/upcoming/all', {
+        const res = await axios.get(`${API}/api/events/upcoming/all`, {
           params: { search: searchQuery }, // Pass the search query in the URL
         });
     
