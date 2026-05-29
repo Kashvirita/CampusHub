@@ -1,10 +1,11 @@
 import axios from 'axios';
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 const instance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: `${API}/api`,
 });
 
-// Automatically add Authorization header if token exists
 instance.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token) {
