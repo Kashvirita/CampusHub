@@ -174,23 +174,26 @@ exports.verifyOtpAfterLogin = async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    // Verify OTP here (your OTP validation logic)
+    const existingOtp = await Otp.findOne({ email: facultyEmail }).sort({ createdAt: -1 });
+    if (!existingOtp || existingOtp.otp !== otp) {
+      return res.status(400).json({ msg: 'Invalid or expired OTP' });
+    }
 
-    // Generate token
+    await Otp.deleteMany({ email: facultyEmail });
+
     const token = jwt.sign({ email: user.facultyEmail, committeeId: user._id }, JWT_SECRET, {
       expiresIn: '4h',
     });
-    console.log(`Generated token: ${token}`);
 
-    // Send the token in the response body instead of setting a cookie
     res.json({
       msg: 'OTP verified successfully',
-      token,                 // Send the token in the response
+      token,
       committeeId: user._id,
       facultyEmail: user.facultyEmail,
-      committeeName: user.name || 'Committee'  // Include other relevant data
+      committeeName: user.committeeName || 'Committee'
     });
   } catch (err) {
+    console.error('❌ Login OTP verify error:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 };

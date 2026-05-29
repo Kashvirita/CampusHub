@@ -5,6 +5,7 @@ const eventController = require('../controllers/eventcontroller');
 
 // Public routes
 router.get('/upcoming/all', eventController.getAllUpcomingEvents);
+router.get('/filters/meta', eventController.getFilterMetadata);
 router.get('/event/:eventId', eventController.getEventById);
 
 // Protected routes
@@ -21,5 +22,8 @@ router.put('/event/:eventId', eventController.updateEvent);
 
 // Delete a specific event by ID
 router.delete('/event/:eventId', eventController.deleteEvent);
+
+// Committee-only: get attendee list for a specific event
+router.get('/event/:eventId/attendees', eventController.getEventAttendees);
 
 module.exports = router;

@@ -1,4 +1,3 @@
-import VerifyOtpAfterLogin from './pages/VerifyOtpAfterLogin';
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
@@ -13,6 +12,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import EventList from './pages/EventList';
 import AdminEventDetails from './pages/AdminEventDetails';
 import CalendarPage from './pages/CalendarPage';
+import VerifyOtpAfterLogin from './pages/VerifyOtpAfterLogin';
+import StudentLogin from './pages/StudentLogin';
+import StudentRegister from './pages/StudentRegister';
+import MyEvents from './pages/MyEvents';
 
 function App() {
   return (
@@ -22,18 +25,42 @@ function App() {
       <Route path="/events/upcoming" element={<EventList />} />
       <Route path="/events/calendar" element={<CalendarPage />} />
       <Route path="/event/:id" element={<EventDetails />} />
+
+      {/* Student auth */}
+      <Route path="/login" element={<StudentLogin />} />
+      <Route path="/signup" element={<StudentRegister />} />
+      <Route path="/my-events" element={<MyEvents />} />
+
+      {/* Committee/admin */}
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/register" element={<Register />} />
       <Route path="/admin/verify-otp" element={<Verify />} />
       <Route path="/admin/login" element={<Login />} />
       <Route path="/admin/login/verify-otp" element={<VerifyOtpAfterLogin />} />
-      <Route path="/admin/dashboard/:committeeId"
-      element={
-      <ProtectedRoute>
-        <AdminDashboard />
-      </ProtectedRoute>}/>
-      <Route path="/admin/create-event/:committeeID" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
-      <Route path="/admin/event/:id" element={<ProtectedRoute><AdminEventDetails /></ProtectedRoute>} />
+      <Route
+        path="/admin/dashboard/:committeeId"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/create-event/:committeeID"
+        element={
+          <ProtectedRoute>
+            <CreateEventPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/event/:id"
+        element={
+          <ProtectedRoute>
+            <AdminEventDetails />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

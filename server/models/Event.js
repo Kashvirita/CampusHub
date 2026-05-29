@@ -47,6 +47,21 @@ const eventSchema = new mongoose.Schema({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming',
   },
+  category: {
+    type: String,
+    enum: ['Workshop', 'Talk', 'Fest', 'Sports', 'Cultural', 'Other'],
+    default: 'Other',
+    index: true,
+  },
+  capacity: {
+    type: Number,
+    min: 0,
+    default: null, // null = unlimited
+  },
+  remindersSent: {
+    type: Boolean,
+    default: false,
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Committee',
@@ -54,6 +69,10 @@ const eventSchema = new mongoose.Schema({
   },
   registeredUsers: [
     {
+      studentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
+      },
       name: String,
       email: String,
       registrationDate: {

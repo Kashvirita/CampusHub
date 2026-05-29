@@ -7,13 +7,15 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
 const imageuploadRoutes = require('./routes/Image');
+const studentRoutes = require('./routes/students');
+const { startReminderScheduler } = require('./utils/reminderScheduler');
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://campushub-04om.onrender.com', // Your frontend URL
-  credentials: true // Allow credentials (cookies)
+  origin: ['http://localhost:5173', 'https://campushub-04om.onrender.com'],
+  credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser()); 
@@ -29,8 +31,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin/events', eventRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/upload', imageuploadRoutes);
+app.use('/api/students', studentRoutes);
 
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  startReminderScheduler();
+});

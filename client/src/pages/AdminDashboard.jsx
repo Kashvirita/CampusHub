@@ -1,163 +1,149 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode'; // Use this library to decode the JWT token
+import { jwtDecode } from 'jwt-decode';
+import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import EventCard from '../components/EventCard';
+import Footer from '../components/Footer';
 import AdminEventCard from '../components/AdminEventCard';
-import committeeImg from '../assets/committee.webp';
+import { FaPlus } from 'react-icons/fa';
 const API = import.meta.env.VITE_API_BASE_URL;
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 
 const AdminDashboard = () => {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [pastEvents, setPastEvents] = useState([]);
   const [committeeId, setCommitteeId] = useState(null);
+  const [tab, setTab] = useState('upcoming');
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchEvents = async (committeeId) => {
+  const fetchEvents = async (id) => {
     try {
-      const token = localStorage.getItem('authToken'); // get the JWT token
-  
-      const res = await fetch(`${API}/api/admin/events/${committeeId}`, {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API}/api/admin/events/${id}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // optional if using cookies
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
-  
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Error ${res.status}: ${text}`);
-      }
-  
+      if (!res.ok) throw new Error(`Error ${res.status}`);
       const data = await res.json();
-  
-      if (!data || data.length === 0) {
-        console.log('No events found for this committee.');
-        return;
-      }
-  
       const today = new Date().toISOString().split('T')[0];
-      const upcoming = data.filter((event) => event.date >= today);
-      const past = data.filter((event) => event.date < today);
-  
-      setUpcomingEvents(upcoming);
-      setPastEvents(past.reverse());
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
+      setUpcomingEvents(data.filter((e) => e.date >= today));
+      setPastEvents(data.filter((e) => e.date < today).reverse());
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+    } finally {
+      setLoading(false);
     }
   };
+
   useEffect(() => {
-    // Get committee ID from localStorage 
     const storedCommitteeId = localStorage.getItem('committeeId');
-    
-    // Alternatively, decode the stored token (if you want to be sure it's valid)
     const storedToken = localStorage.getItem('authToken');
-    
     if (storedToken) {
       try {
-        const decodedToken = jwtDecode(storedToken);
-        console.log('Decoded token:', decodedToken);
-        
-        // Get committeeId from the decoded token
-        const committeeIdFromToken = decodedToken.committeeId || decodedToken.id;
-        
-        if (committeeIdFromToken) {
-          setCommitteeId(committeeIdFromToken);
-          fetchEvents(committeeIdFromToken);
-        } else if (storedCommitteeId) {
-          // Fallback to stored committeeId if not in token
-          setCommitteeId(storedCommitteeId);
-          fetchEvents(storedCommitteeId);
-        } else {
-          console.log('No committeeId found');
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error('Error decoding JWT:', error);
-        
-        // Fallback to stored committeeId if token decoding fails
+        const decoded = jwtDecode(storedToken);
+        const id = decoded.committeeId || decoded.id || storedCommitteeId;
+        if (id) {
+          setCommitteeId(id);
+          fetchEvents(id);
+        } else navigate('/admin/login');
+      } catch {
         if (storedCommitteeId) {
           setCommitteeId(storedCommitteeId);
           fetchEvents(storedCommitteeId);
-        } else {
-          navigate('/login');
-        }
+        } else navigate('/admin/login');
       }
     } else if (storedCommitteeId) {
-      // Use storedCommitteeId if no token is available
       setCommitteeId(storedCommitteeId);
       fetchEvents(storedCommitteeId);
-    } else {
-      console.log('No authentication found');
-      navigate('/login');
-    }
+    } else navigate('/admin/login');
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('committeeToken');
-    localStorage.removeItem('committeeId');
-    
-    // Call logout endpoint to clear the HTTP-only cookie
-    fetch(`${API}/api/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    }).then(() => {
-      navigate('/login');
-    });
-  };
+  const list = tab === 'upcoming' ? upcomingEvents : pastEvents;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <div className="relative w-full h-64 overflow-hidden">
-        <img src={committeeImg} alt="Committee" className="object-cover w-full h-full" />
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-          <h1 className="text-white text-4xl font-bold">Admin Dashboard</h1>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => navigate(`/admin/create-event/${committeeId}`)} // Pass committeeId to event creation page
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-          >
-            + Create New Event
-          </button>
-        </div>
-
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Upcoming Events</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {upcomingEvents.length > 0 ? (
-              upcomingEvents.map(event => (
-                <AdminEventCard
-                  key={event._id}
-                  id= {event._id}
-                  title={event.title}
-                  description={event.shortDescription}
-                  date={event.date}
-                  startTime={event.startTime}
-                  endTime={event.endTime}
-                  imageUrl={event.imageUrl}
-                  location={event.location}
-                  committee={event.committeeName}/>
-              ))
-            ) : (
-              <p className="text-gray-600">No upcoming events.</p>
-            )}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10"
+        >
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[#FFA628] mb-2">Admin</p>
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-900">Your dashboard</h1>
+            <p className="text-sm text-slate-500 mt-2">Create and manage events for your committee.</p>
           </div>
-        </section>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate(`/admin/create-event/${committeeId}`)}
+            className="inline-flex items-center gap-2 bg-[#2E5AA7] hover:bg-[#244a8c] text-white font-medium px-5 py-2.5 rounded-xl transition-colors shadow-sm hover:shadow"
+          >
+            <FaPlus className="text-xs" /> New event
+          </motion.button>
+        </motion.div>
 
-        <section className="mt-10">
-          <h2 className="text-2xl font-semibold mb-4">Past Events</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {pastEvents.length > 0 ? (
-              pastEvents.map(event => (
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+          {[
+            { label: 'Upcoming', value: upcomingEvents.length, accent: 'text-[#2E5AA7]' },
+            { label: 'Past', value: pastEvents.length, accent: 'text-slate-600' },
+            { label: 'Total', value: upcomingEvents.length + pastEvents.length, accent: 'text-[#FFA628]' },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.label}</p>
+              <p className={`text-3xl font-semibold mt-2 ${stat.accent}`}>{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 border-b border-slate-200 mb-8">
+          {['upcoming', 'past'].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`relative px-4 py-2.5 text-sm font-medium capitalize transition-colors ${
+                tab === t ? 'text-[#2E5AA7]' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {t} events
+              {tab === t && (
+                <motion.span
+                  layoutId="tabIndicator"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2E5AA7]"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Events grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-slate-100 animate-pulse rounded-2xl h-80" />
+            ))}
+          </div>
+        ) : list.length > 0 ? (
+          <motion.div
+            key={tab}
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {list.map((event) => (
+              <motion.div key={event._id} variants={fadeUp}>
                 <AdminEventCard
-                  key={event._id}
                   id={event._id}
                   title={event.title}
                   description={event.shortDescription}
@@ -166,14 +152,27 @@ const AdminDashboard = () => {
                   endTime={event.endTime}
                   imageUrl={event.imageUrl}
                   location={event.location}
-                  committee={event.committeeName}/>
-              ))
-            ) : (
-              <p className="text-gray-600">No past events.</p>
+                  committee={event.committeeName}
+                  category={event.category}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <div className="text-center py-20 rounded-2xl border-2 border-dashed border-slate-200">
+            <p className="text-slate-500 mb-1">No {tab} events</p>
+            {tab === 'upcoming' && (
+              <button
+                onClick={() => navigate(`/admin/create-event/${committeeId}`)}
+                className="mt-3 text-sm text-[#2E5AA7] font-medium hover:underline"
+              >
+                Create your first event →
+              </button>
             )}
           </div>
-        </section>
-      </div>
+        )}
+      </main>
+      <Footer />
     </div>
   );
 };

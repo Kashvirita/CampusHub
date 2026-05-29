@@ -1,5 +1,14 @@
 const Event = require('../models/Event');
 
+// Helper: shape an event for public consumption (no PII from registeredUsers)
+const publicEventShape = (event) => {
+  const obj = event.toObject ? event.toObject() : { ...event };
+  const attendeeCount = Array.isArray(obj.registeredUsers) ? obj.registeredUsers.length : 0;
+  delete obj.registeredUsers;
+  obj.attendeeCount = attendeeCount;
+  return obj;
+};
+
 // Create an event
 exports.createEvent = async (req, res) => {
     try {
@@ -60,34 +69,61 @@ exports.getCommitteeEvents = async (req, res) => {
     res.status(500).json({ msg: 'Error fetching events', error: err.message });
   }
 };
-// Get all upcoming events
+// Get all upcoming events, with optional filters: search, category, committee, from, to
 exports.getAllUpcomingEvents = async (req, res) => {
   try {
-    const { search } = req.query;
+    const { search, category, committee, from, to } = req.query;
 
-    const query = {
-      status: 'upcoming',
-    };
+    const query = { status: 'upcoming' };
 
-    // If there is a search query, add the conditions for filtering by title, committeeName, etc.
     if (search) {
-      const searchRegex = new RegExp(search, 'i'); // case-insensitive
+      const r = new RegExp(search, 'i');
       query.$or = [
-        { title: searchRegex },
-        { committeeName: searchRegex },
-        { shortDescription: searchRegex },
-        { eventDescription: searchRegex },
+        { title: r },
+        { committeeName: r },
+        { shortDescription: r },
+        { eventDescription: r },
+        { location: r },
       ];
     }
 
-    // Fetch events from the database based on the query
-    const events = await Event.find(query).sort({ date: 1 }); // Sort by date
+    if (category) {
+      const cats = category.split(',').map((c) => c.trim()).filter(Boolean);
+      if (cats.length > 0) query.category = { $in: cats };
+    }
 
-    // Send the events array as a response
-    res.status(200).json(events); // Just send the events array directly
+    if (committee) {
+      query.committeeName = new RegExp(`^${committee.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    }
+
+    if (from || to) {
+      query.date = {};
+      if (from) query.date.$gte = new Date(from);
+      if (to) {
+        const end = new Date(to);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const events = await Event.find(query).sort({ date: 1 });
+    res.status(200).json(events.map(publicEventShape));
   } catch (error) {
-    console.error("Error fetching events:", error);
+    console.error('Error fetching events:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// List unique committee names + categories for filter UI population
+exports.getFilterMetadata = async (req, res) => {
+  try {
+    const committees = await Event.distinct('committeeName', { status: 'upcoming' });
+    res.json({
+      committees: committees.filter(Boolean).sort(),
+      categories: ['Workshop', 'Talk', 'Fest', 'Sports', 'Cultural', 'Other'],
+    });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
@@ -154,13 +190,38 @@ exports.deleteEvent = async (req, res) => {
   }
 };
 
-// (Optional) Get a specific event
+// (Optional) Get a specific event — sanitized, no PII
 exports.getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.eventId);
     if (!event) return res.status(404).json({ msg: 'Event not found' });
-    res.json(event);
+    res.json(publicEventShape(event));
   } catch (err) {
     res.status(500).json({ msg: 'Error fetching event', error: err.message });
+  }
+};
+
+// Committee-protected: list attendees for an event owned by the requesting committee
+exports.getEventAttendees = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return res.status(404).json({ msg: 'Event not found' });
+    if (event.createdBy.toString() !== req.committeeId.toString()) {
+      return res.status(403).json({ msg: 'Not authorized to view this event\'s attendees' });
+    }
+    const attendees = (event.registeredUsers || []).map((u) => ({
+      studentId: u.studentId,
+      name: u.name,
+      email: u.email,
+      registrationDate: u.registrationDate,
+    }));
+    res.json({
+      attendees,
+      total: attendees.length,
+      capacity: event.capacity ?? null,
+    });
+  } catch (err) {
+    console.error('Get attendees error:', err);
+    res.status(500).json({ msg: 'Error fetching attendees' });
   }
 };

@@ -1,67 +1,134 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import Navbar from '../components/Navbar';
 const API = import.meta.env.VITE_API_BASE_URL;
 
 const VerifyOtpAfterLogin = () => {
   const [otp, setOtp] = useState('');
-  const [facultyEmail, setFacultyEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(90);
+  const [resendEnabled, setResendEnabled] = useState(false);
+
   const navigate = useNavigate();
+  const location = useLocation();
+  const facultyEmail = location.state?.facultyEmail;
+
+  useEffect(() => {
+    if (!facultyEmail) navigate('/admin/login');
+  }, [facultyEmail, navigate]);
+
+  useEffect(() => {
+    let countdown;
+    if (timer > 0) countdown = setInterval(() => setTimer((p) => p - 1), 1000);
+    else setResendEnabled(true);
+    return () => clearInterval(countdown);
+  }, [timer]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
-
+    setError('');
+    setLoading(true);
     try {
-      const res = await axios.post(`${API}/api/auth/login/verify-otp`, {
-        credentials: 'include',
-        facultyEmail,
-        otp
-      });
-
+      const res = await axios.post(`${API}/api/auth/login/verify-otp`, { facultyEmail, otp });
       localStorage.setItem('authToken', res.data.token);
       localStorage.setItem('committeeId', res.data.committeeId);
-      console.log(res.data.committeeId);
-      alert('OTP verified successfully!');
       navigate('/admin/dashboard/' + res.data.committeeId);
-
     } catch (err) {
-      alert(err.response?.data?.msg || 'OTP verification failed');
+      setError(err.response?.data?.msg || 'OTP verification failed.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleResendOtp = async () => {
+    setError('');
+    try {
+      await axios.post(`${API}/api/auth/resend-otp`, { facultyEmail });
+      setTimer(90);
+      setResendEnabled(false);
+    } catch (err) {
+      setError(err.response?.data?.msg || 'Failed to resend OTP.');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleVerify}
-        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-2 text-center">Verify OTP</h2>
-        <p className="text-gray-600 text-center mb-6">Check your faculty email for the OTP</p>
-
-        <input
-          type="email"
-          placeholder="Faculty Email"
-          value={facultyEmail}
-          onChange={(e) => setFacultyEmail(e.target.value)}
-          className="w-full mb-4 p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          required
-        />
-
-        <input
-          type="text"
-          placeholder="Enter OTP"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          className="w-full mb-6 p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          required
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+    <div className="flex flex-col min-h-screen bg-white">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-6 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          className="w-full max-w-md"
         >
-          Verify OTP
-        </button>
-      </form>
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#FFA628]/15 mb-4">
+              <span className="text-[#FFA628] text-xl">✉</span>
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 mb-2">
+              Enter your code
+            </h1>
+            <p className="text-sm text-slate-500">
+              We sent a code to <span className="font-medium text-slate-700">{facultyEmail}</span>
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleVerify}
+            className="bg-white rounded-2xl border border-slate-200 p-8 space-y-5 shadow-sm"
+          >
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-100 text-red-700 text-sm px-3 py-2.5 rounded-lg"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder="• • • • • •"
+              className="w-full px-4 py-3.5 text-center text-2xl tracking-[0.8em] font-semibold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#2E5AA7] focus:ring-1 focus:ring-[#2E5AA7] transition"
+              required
+              autoFocus
+            />
+
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading || otp.length !== 6}
+              className="w-full bg-[#2E5AA7] hover:bg-[#244a8c] text-white font-medium py-2.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? 'Verifying…' : 'Verify & Log In'}
+            </motion.button>
+
+            <div className="text-center text-sm">
+              {resendEnabled ? (
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  className="text-[#2E5AA7] font-medium hover:underline"
+                >
+                  Resend code
+                </button>
+              ) : (
+                <p className="text-slate-500">
+                  Resend in <span className="text-slate-900 font-medium">{timer}s</span>
+                </p>
+              )}
+            </div>
+          </form>
+        </motion.div>
+      </div>
     </div>
   );
 };
